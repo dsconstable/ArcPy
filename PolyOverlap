@@ -1,0 +1,77 @@
+#Explode overlapping polygons to new, non-overlapping polygons. Or 'spaghetti and meatballs' lite (https://blogs.esri.com/esri/arcgis/2012/11/13/spaghetti_and_meatballs/)
+#Code from https://gis.stackexchange.com/questions/32217/exploding-overlapping-to-new-non-overlapping-polygons/32311#32311.
+#Thanks to Dr. Bill Huber of Quantitative Decisions for the background theory
+#
+#Count overlaps
+def countOverlaps(fc,idName):
+    intersect = arcpy.Intersect_analysis(fc,'intersect')
+    findID = arcpy.FindIdentical_management(intersect,"explFindID","Shape")
+    arcpy.MakeFeatureLayer_management(intersect,"intlyr")
+    arcpy.AddJoin_management("intlyr",arcpy.Describe("intlyr").OIDfieldName,findID,"IN_FID","KEEP_ALL")
+    segIDs = {}
+    featseqName = "explFindID.FEAT_SEQ"
+    idNewName = "intersect."+idName
+
+    for row in arcpy.SearchCursor("intlyr"):
+        idVal = row.getValue(idNewName)
+        featseqVal = row.getValue(featseqName)
+        segIDs[featseqVal] = []
+    for row in arcpy.SearchCursor("intlyr"):
+        idVal = row.getValue(idNewName)
+        featseqVal = row.getValue(featseqName)
+        segIDs[featseqVal].append(idVal)
+
+    segIDs2 = {}
+    for row in arcpy.SearchCursor("intlyr"):
+        idVal = row.getValue(idNewName)
+        segIDs2[idVal] = []
+
+    for x,y in segIDs.iteritems():
+        for segID in y:
+            segIDs2[segID].extend([k for k in y if k != segID])
+
+    for x,y in segIDs2.iteritems():
+        segIDs2[x] = list(set(y))
+
+    arcpy.RemoveJoin_management("intlyr",arcpy.Describe(findID).name)
+
+    if 'overlaps' not in [k.name for k in arcpy.ListFields(fc)]:
+        arcpy.AddField_management(fc,'overlaps',"TEXT")
+    if 'ovlpCount' not in [k.name for k in arcpy.ListFields(fc)]:
+        arcpy.AddField_management(fc,'ovlpCount',"SHORT")
+
+    urows = arcpy.UpdateCursor(fc)
+    for urow in urows:
+        idVal = urow.getValue(idName)
+        if segIDs2.get(idVal):
+            urow.overlaps = str(segIDs2[idVal]).strip('[]')
+            urow.ovlpCount = len(segIDs2[idVal])
+        urows.updateRow(urow)
+
+def explodeOverlaps(fc,idName):
+
+    countOverlaps(fc,idName)
+
+    arcpy.AddField_management(fc,'expl',"SHORT")
+
+    urows = arcpy.UpdateCursor(fc,'"overlaps" IS NULL')
+    for urow in urows:
+        urow.expl = 1
+        urows.updateRow(urow)
+
+    i=1
+    lyr = arcpy.MakeFeatureLayer_management(fc)
+    while int(arcpy.GetCount_management(arcpy.SelectLayerByAttribute_management(lyr,"NEW_SELECTION",'"expl" IS NULL')).getOutput(0)) > 0:
+        ovList=[]
+        urows = arcpy.UpdateCursor(fc,'"expl" IS NULL','','','ovlpCount D')
+        for urow in urows:
+            ovVal = urow.overlaps
+            idVal = urow.getValue(idName)
+            intList = ovVal.replace(' ','').split(',')
+            for x in intList:
+                intList[intList.index(x)] = int(x)
+            if idVal not in ovList:
+                urow.expl = i
+            urows.updateRow(urow)
+            ovList.extend(intList)
+        i+=1
