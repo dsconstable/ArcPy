@@ -1,0 +1,19 @@
+#Iterate through loop of rasters and run zonal stats (count)
+#This uses vectors as zones. Be sure to set environment first to set raster analysis cell size equal to input raster(s).
+import arcpy
+from arcpy import env
+from arcpy.sa import *
+
+#Update TBD below to your workspace (filepath)
+env.workspace = "TBD"
+arcpy.env.overwriteoutput = 1
+
+#Update path below to your workspace (filepath) and zone (vector)
+zone = "C:/path/zone.shp"
+outDir = "C:/path/output"
+
+for raster in arcpy.ListRasters():
+    outTable = outDir + raster + "_table.dbf"
+    arcpy.sa.ZonalStatisticsAsTable(zone,"Name",raster,outTable,"NODATA","COUNT")
+    
+ #TO DO: Table to Excel, and export to new output filepath
