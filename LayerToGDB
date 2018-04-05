@@ -1,0 +1,24 @@
+$Originally developed by: BGCarto (http://www.bgcarto.com/export-map-layers-to-gdb-with-python/)
+#import arcpy to access esri python module
+import arcpy
+ 
+#sets the processing target to the current mxd
+mxd = arcpy.mapping.MapDocument("CURRENT")
+#this is the output geodatabase for feature classes, this can be a folder if you want to output shapefiles
+out = r"D:\GIS_Temp\Map_Consolidation.gdb"
+ 
+#loop to gather source paths of each layer in current mxd and export each to the out directory defined above
+for lyr in arcpy.mapping.ListLayers(mxd):
+#checks that each layer has a datasource attribute
+    if lyr.supports("DATASOURCE"):
+        #grabs the layer's datasource
+        ds = lyr.dataSource
+        #grabs the layer's name from the table of contents
+        nm = lyr.name
+        #replaces spaces in the layer name with an underscore
+        nm = nm.replace(" ","_")
+        #prints the current layer's output filename
+        print nm
+        #perform the export of the current layer per the loop, to the out directory/gdb
+        arcpy.FeatureClassToFeatureClass_conversion(ds, out, nm)
+        print "Layer: " + lyr.name + "  Source: " + lyr.dataSource
