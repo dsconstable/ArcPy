@@ -1,0 +1,24 @@
+# Python code to pull multiple attribute fields for label
+# Can be modified to place fields on different label lines
+# Intended for ArcMap, but it's Python so should work with other tables correctly
+# Source: BG Carto (http://www.bgcarto.com/map-typography-a-python-label-expression/)
+
+# Define fields used in label
+def FindLabel ([table.field1],[table.field2]):
+
+# If  <null>, then add a new line (“\n”) then the symbol “-” in fnt size 6 at 70% black. 
+# Without this <null> values would not label at all (error returned instead).
+if field2 == None:
+    L = field1 +"\n"+"<fnt size='6'><ita><clr black='70'>"+"-"+"</clr></ita></fnt>"
+    
+# Define label (L) for non-null Field 2 values. 
+# Next line creates new variable, converts string to title case.
+# L defined as a number, then a new line, then title case with "&" replaced with "&amp;"
+# Formatting tags to return a 6pt, italics, 70% grey Field 2
+# Comment out (and delete in ArcMap) sections if L is not a number and ampersand (&) not required
+elif own != None:
+    Field2T=Field2.title()
+    L = Field1 +"\n"+"<fnt size='6'><ita><clr black='70'>"+Field2T.replace("&","&amp;")+"</clr></ita></fnt>"
+    
+# Return full label.
+ return L
