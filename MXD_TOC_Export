@@ -1,0 +1,18 @@
+# Script to export all vector layers in an ESRI MXD file to a single location
+# Currently exports all as shapefiles, regardless if GDB feature class or shapefile is input
+
+# Import arcpy
+import os, arcpy
+
+# Set path to output folder where to export data
+folder = "path\to\folder"
+
+#Get name of vector layers in the TOC
+mxd = arcpy.mapping.MapDocument("current")
+df = arcpy.mapping.ListDataFrames(mxd)[0]
+layers = [f.name for f in arcpy.mapping.ListLayers(mxd, "*", df) if f.isFeatureLayer]
+
+for layer in layers:
+    #Join output folder to layer name and append .shp
+    shp_out = os.path.join(folder, "{}.shp".format(layer))
+    arcpy.CopyFeatures_management(layer, shp_out)
