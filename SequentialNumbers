@@ -1,0 +1,18 @@
+# Code to create sequential numeric ID in field using Python in ArcGIS
+# Useful for creating new, static IDs; will be created in order of OID
+# Code from ESRI
+
+# Paste in Pre-Logic Script Code (remember to select Python, not VBA)
+rec=0 
+def autoIncrement(): 
+ global rec 
+ pStart = 1  
+ pInterval = 1 
+ if (rec == 0):  
+  rec = pStart  
+ else:  
+  rec += pInterval  
+ return rec
+ 
+ # Paste in the smaller box below the Pre-Logic Script Code:
+ autoIncrement()
