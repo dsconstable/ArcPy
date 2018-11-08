@@ -1,0 +1,20 @@
+# Description: Generate points along line
+
+import arcpy
+
+# Set environment settings
+arcpy.env.workspace = 'C:/data/base.gdb'
+
+# Set local variables
+in_features = 'rivers'
+out_fc_dst = 'distance_intervals'
+out_fc_pct = 'percentage_intervals'
+
+# Execute GeneratePointsAlongLines by distance
+arcpy.GeneratePointsAlongLines_management(in_features, out_fc_dst, 'DISTANCE',
+                                          Distance='500 meters')
+
+# Execute GeneratePointsAlongLines by percentage
+arcpy.GeneratePointsAlongLines_management(in_features, out_fc_pct, 'PERCENTAGE',
+                                          Percentage=10,
+                                          Include_End_Points='END_POINTS')
